@@ -1,0 +1,132 @@
+# Camel / Quarkus crash course — supporting services next to the Confluent lab cluster
+#
+# Written 2026-11-08. Runs on a Linux Docker host ("the lab host"; tested on Ubuntu 24.04, x86_64, 32 GB). Read README.md first.
+#
+# This file does NOT start Kafka. It joins the network of the Confluent crash course
+# (project "crash-course", network "crash-course_default") and uses dc-a + sr-a from there:
+#   cd ../../confluent-crash-course/00-lab-setup && docker compose up -d dc-a sr-a
+#
+# What runs here:
+#   artemis    Apache Artemis 2.57.0 (the "AMQ" in Red Hat AMQ Broker). Queues, per-message ack.
+#   postgres   PostgreSQL 17 — idempotent-consumer store for Camel (and any JDBC lab).
+#   wiremock   WireMock 3.13.2 — stands in for an external partner's webhook.
+#   kafka-ui   kafbat/kafka-ui v1.5.0 — browse topics, messages and Schema Registry subjects on dc-a.
+#   ibm-mq     (profile "ibmmq") IBM MQ 9.4 developer image — for the IBM MQ -> Artemis bridge lab.
+#   esb-lab    (profile "app") the reference Camel Quarkus app, built from ../esb-lab.
+#
+# Host ports on the lab host (reach them from your workstation through ./tunnel.sh, so they look like localhost):
+#   Kafka dc-a 9092 · REST 8090 · Schema Registry 8081        (from the Confluent compose)
+#   Artemis 61616 (core/AMQP/OpenWire/STOMP/MQTT) · console 8161
+#   Postgres 5432 · WireMock 8089 · kafka-ui 8070 · esb-lab 8080 · IBM MQ 1414 / console 9443
+# Inside the Docker network: dc-a:29092, sr-a:8081, artemis:61616, postgres:5432, wiremock:8080.
+#
+# Start:   docker compose up -d                      (services, no app)
+#          docker compose --profile app up -d --build (plus the reference app in a container)
+#          docker compose --profile ibmmq up -d      (plus IBM MQ)
+# Stop:    docker compose --profile app --profile ibmmq stop
+# Reset:   docker compose --profile app --profile ibmmq down -v
+
+name: camel-lab
+
+networks:
+  default:
+    name: crash-course_default
+    external: true
+
+services:
+
+  artemis:
+    image: apache/artemis:2.57.0
+    container_name: artemis
+    hostname: artemis
+    ports:
+      - "61616:61616"   # all protocols on one acceptor
+      - "8161:8161"     # web console + Jolokia (http://localhost:8161/console)
+    environment:
+      ARTEMIS_USER: esb
+      ARTEMIS_PASSWORD: esb
+      ANONYMOUS_LOGIN: "false"
+      EXTRA_ARGS: "--http-host 0.0.0.0 --relax-jolokia"
+    volumes:
+      # Files in etc-override are copied into etc/ when the instance is first created.
+      # broker.properties sets redelivery + dead-letter rules for every address under "esb.#".
+      - ./artemis/etc-override:/var/lib/artemis-instance/etc-override:ro
+      - artemis-data:/var/lib/artemis-instance
+
+  postgres:
+    image: postgres:17.11-alpine
+    container_name: postgres
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: esb
+      POSTGRES_USER: esb
+      POSTGRES_PASSWORD: esb
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esb -d esb"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  wiremock:
+    image: wiremock/wiremock:3.13.2
+    container_name: wiremock
+    hostname: wiremock
+    ports:
+      - "8089:8080"
+    command: ["--global-response-templating", "--verbose"]
+    volumes:
+      - ./wiremock:/home/wiremock
+
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:v1.5.0
+    container_name: kafka-ui
+    ports:
+      - "8070:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: dc-a
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: dc-a:29092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://sr-a:8081
+
+  ibm-mq:
+    image: icr.io/ibm-messaging/mq:9.4.5.0-r1
+    container_name: ibm-mq
+    hostname: ibm-mq
+    profiles: ["ibmmq"]
+    ports:
+      - "1414:1414"
+      - "9443:9443"
+    environment:
+      LICENSE: accept              # IBM MQ Advanced for Developers licence: non-production use
+      MQ_QMGR_NAME: QM1
+      MQ_APP_PASSWORD: passw0rd    # user "app", channel DEV.APP.SVRCONN, queues DEV.QUEUE.1..3
+      MQ_ADMIN_PASSWORD: passw0rd  # user "admin", console https://localhost:9443/ibmmq/console
+    volumes:
+      - mq-data:/mnt/mqm
+
+  esb-lab:
+    build: ../esb-lab
+    image: esb-lab:dev
+    container_name: esb-lab
+    profiles: ["app"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      artemis:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_BOOTSTRAP: dc-a:29092
+      SR_URL: http://sr-a:8081
+      ARTEMIS_URL: tcp://artemis:61616
+      PG_URL: jdbc:postgresql://postgres:5432/esb
+      PARTNER_WEBHOOK_URL: http://wiremock:8080/partner/webhook
+
+volumes:
+  artemis-data:
+  pg-data:
+  mq-data:

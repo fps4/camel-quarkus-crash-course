@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  esb-lab — a small enterprise service bus built with Camel Quarkus. Reference solution for the
+  Camel/Quarkus crash course. Versions pinned 2026-11-08:
+    Quarkus platform 3.40.1  ->  Camel Quarkus 3.40.0 (LTS)  ->  Apache Camel 4.22.x (LTS)
+  Red Hat's supported build lags upstream (Red Hat build of Apache Camel 4.18 at time of writing). [V]
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>lab.esb</groupId>
+  <artifactId>esb-lab</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+    <quarkus.platform.version>3.40.1</quarkus.platform.version>
+    <!-- Not in the Quarkus platform BOMs: -->
+    <quarkiverse-artemis.version>3.14.3</quarkiverse-artemis.version>
+    <confluent.version>8.4.0</confluent.version>
+    <compiler-plugin.version>3.14.0</compiler-plugin.version>
+    <surefire-plugin.version>3.5.3</surefire-plugin.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>quarkus-bom</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>quarkus-camel-bom</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <repositories>
+    <!-- io.confluent:kafka-avro-serializer is only published here -->
+    <repository>
+      <id>confluent</id>
+      <url>https://packages.confluent.io/maven/</url>
+      <snapshots><enabled>false</enabled></snapshots>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <!-- Camel core pieces used by the routes -->
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-direct</artifactId></dependency>
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-log</artifactId></dependency>
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-bean</artifactId></dependency>
+
+    <!-- Inbound REST from external partners (REST DSL served by Quarkus' Vert.x HTTP server) -->
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-rest</artifactId></dependency>
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-platform-http</artifactId></dependency>
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-jackson</artifactId></dependency>
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-jacksonxml</artifactId></dependency>
+
+    <!-- Outbound HTTP to a partner webhook -->
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-http</artifactId></dependency>
+
+    <!-- Kafka (Confluent Platform dc-a) + Avro with Confluent Schema Registry -->
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-kafka</artifactId></dependency>
+    <dependency><groupId>io.quarkus</groupId><artifactId>quarkus-avro</artifactId></dependency>
+    <dependency><groupId>io.quarkus</groupId><artifactId>quarkus-confluent-registry-avro</artifactId></dependency>
+    <dependency><groupId>io.quarkus</groupId><artifactId>quarkus-rest-client</artifactId></dependency>
+    <dependency>
+      <groupId>io.confluent</groupId>
+      <artifactId>kafka-avro-serializer</artifactId>
+      <version>${confluent.version}</version>
+      <exclusions>
+        <exclusion><groupId>jakarta.ws.rs</groupId><artifactId>jakarta.ws.rs-api</artifactId></exclusion>
+      </exclusions>
+    </dependency>
+    <dependency><groupId>com.fasterxml.jackson.dataformat</groupId><artifactId>jackson-dataformat-csv</artifactId></dependency>
+
+    <!-- Artemis (queues) through JMS, with a connection pool -->
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-jms</artifactId></dependency>
+    <dependency>
+      <groupId>io.quarkiverse.artemis</groupId>
+      <artifactId>quarkus-artemis-jms</artifactId>
+      <version>${quarkiverse-artemis.version}</version>
+    </dependency>
+    <dependency><groupId>io.quarkiverse.messaginghub</groupId><artifactId>quarkus-pooled-jms</artifactId></dependency>
+
+    <!-- Idempotent consumer store (JdbcMessageIdRepository lives in camel-sql) -->
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-sql</artifactId></dependency>
+    <dependency><groupId>io.quarkus</groupId><artifactId>quarkus-jdbc-postgresql</artifactId></dependency>
+
+    <!-- Operations: health (/q/health), metrics (/q/metrics), Kubernetes manifests (target/kubernetes) -->
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-microprofile-health</artifactId></dependency>
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-micrometer</artifactId></dependency>
+    <dependency><groupId>io.quarkus</groupId><artifactId>quarkus-micrometer-registry-prometheus</artifactId></dependency>
+    <dependency><groupId>io.quarkus</groupId><artifactId>quarkus-kubernetes</artifactId></dependency>
+
+    <!-- Tests -->
+    <dependency><groupId>io.quarkus</groupId><artifactId>quarkus-junit</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.apache.camel.quarkus</groupId><artifactId>camel-quarkus-junit</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>io.rest-assured</groupId><artifactId>rest-assured</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.awaitility</groupId><artifactId>awaitility</artifactId><scope>test</scope></dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <goals>
+              <goal>build</goal>
+              <goal>generate-code</goal>
+              <goal>generate-code-tests</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${compiler-plugin.version}</version>
+        <configuration>
+          <parameters>true</parameters>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire-plugin.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

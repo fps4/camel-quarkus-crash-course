@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "OrderStatusUpdated",
+  "namespace": "lab.esb.events",
+  "doc": "A fact: the status of one order changed. Key = orderId. Topic orders.order-status.updated.v1.",
+  "fields": [
+    { "name": "eventId", "type": "string", "doc": "UUID, unique per event; consumers de-duplicate on it" },
+    { "name": "orderId", "type": "string", "doc": "Order reference, e.g. SO-1001234" },
+    {
+      "name": "status",
+      "type": {
+        "type": "enum",
+        "name": "OrderStatus",
+        "symbols": ["CREATED", "CONFIRMED", "DELAYED", "LOCATION_CHANGE", "READY", "DISPATCHED", "CANCELLED", "UNKNOWN"],
+        "default": "UNKNOWN"
+      }
+    },
+    { "name": "location", "type": ["null", "string"], "default": null },
+    { "name": "estimatedTime", "type": ["null", { "type": "long", "logicalType": "timestamp-millis" }], "default": null },
+    { "name": "source", "type": "string", "doc": "Who reported it: partner code or internal system" },
+    { "name": "occurredAt", "type": { "type": "long", "logicalType": "timestamp-millis" } }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "mappings": [
+    {
+      "name": "partner webhook - fails when location contains FAIL (to practise retries)",
+      "priority": 1,
+      "request": {
+        "method": "POST",
+        "url": "/partner/webhook",
+        "bodyPatterns": [ { "matchesJsonPath": "$[?(@.location =~ /.*FAIL.*/)]" } ]
+      },
+      "response": {
+        "status": 503,
+        "jsonBody": { "error": "partner temporarily unavailable" },
+        "headers": { "Content-Type": "application/json" }
+      }
+    },
+    {
+      "name": "partner webhook - slow when location contains SLOW (to practise timeouts)",
+      "priority": 2,
+      "request": {
+        "method": "POST",
+        "url": "/partner/webhook",
+        "bodyPatterns": [ { "matchesJsonPath": "$[?(@.location =~ /.*SLOW.*/)]" } ]
+      },
+      "response": {
+        "status": 200,
+        "fixedDelayMilliseconds": 8000,
+        "jsonBody": { "received": true, "slow": true },
+        "headers": { "Content-Type": "application/json" }
+      }
+    },
+    {
+      "name": "partner webhook - happy path",
+      "priority": 10,
+      "request": { "method": "POST", "url": "/partner/webhook" },
+      "response": {
+        "status": 200,
+        "jsonBody": { "received": true, "orderId": "{{jsonPath request.body '$.orderId'}}" },
+        "headers": { "Content-Type": "application/json" }
+      }
+    }
+  ]
+}
