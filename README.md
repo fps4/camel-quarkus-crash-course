@@ -20,7 +20,7 @@ the design. **[V]** in the text = check before you state it as fact (versions, s
 vendor claims).
 
 This course is the companion of the
-[Confluent Kafka crash course](https://github.com/fps4/confluent-kafka-crash-course). The lab uses that course's
+[Hybrid Kafka on Azure](https://github.com/fps4/hybrid-kafka-on-azure). The lab uses that course's
 Kafka cluster (`dc-a`) and Schema Registry (`sr-a`), so you clone both repos (see below).
 
 # If you know IBM ACE/IIB and MQ
@@ -54,7 +54,7 @@ material is free and scattered. Use these alongside the labs, not instead of the
 | [Quarkus guides](https://quarkus.io/guides/) — Kafka, Schema Registry Avro, Dev Services, Kubernetes | Quarkus side of the stack | Reference |
 | [Camel videos page](https://camel.apache.org/categories/Videos) (Claus Ibsen and others) | Camel JBang, debugging, Quarkus Insights sessions | Good for evenings |
 
-So: **use the labs below**, built on the same Kafka cluster as the Confluent course, and dip into
+So: **use the labs below**, built on the same Kafka cluster as the Hybrid Kafka on Azure course, and dip into
 the upstream examples where a module points to them.
 
 # The lab
@@ -95,12 +95,12 @@ bus live.
 # Get the code
 
 The lab needs both repos, cloned side by side, because this course starts `dc-a` + `sr-a` from the
-Confluent course and the relative paths (`../../confluent-kafka-crash-course/00-lab-setup`) expect that
+Hybrid Kafka on Azure course and the relative paths (`../../hybrid-kafka-on-azure/00-lab-setup`) expect that
 layout:
 
 ```bash
 mkdir -p ~/labs && cd ~/labs
-git clone https://github.com/fps4/confluent-kafka-crash-course.git
+git clone https://github.com/fps4/hybrid-kafka-on-azure.git
 git clone https://github.com/fps4/camel-quarkus-crash-course.git
 ```
 

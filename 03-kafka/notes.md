@@ -15,8 +15,8 @@ subtitle: "camel-quarkus-kafka producer and consumer, keys, acks, offsets, break
   a given integration flow.
 
 Kafka itself (partitions, ISR, idempotent producer, consumer groups, transactions) is in the
-[Confluent course](https://github.com/fps4/confluent-kafka-crash-course) (clone it next to this one): [08 Kafka internals](../../confluent-kafka-crash-course/08-kafka-internals/notes.md)
-§2.5–2.6 and [notes-clients-and-storage](../../confluent-kafka-crash-course/08-kafka-internals/notes-clients-and-storage.md).
+[Hybrid Kafka on Azure](https://github.com/fps4/hybrid-kafka-on-azure) (clone it next to this one): [08 Kafka internals](../../hybrid-kafka-on-azure/08-kafka-internals/notes.md)
+§2.5–2.6 and [notes-clients-and-storage](../../hybrid-kafka-on-azure/08-kafka-internals/notes-clients-and-storage.md).
 This module covers only the Camel side.
 
 ---
@@ -247,7 +247,7 @@ that the Confluent serializer needs.
 In a governed setup set `additionalProperties.auto.register.schemas=false` on every producer
 endpoint (or as a component default). Then a producer whose schema is not registered fails on the
 first send: "no schema, no topic" is enforced by the client, and broker-side schema ID validation
-(Confluent course module 08 §3) catches clients that skip the serializer.
+(Hybrid Kafka on Azure, module 01 §3) catches clients that skip the serializer.
 
 Wire format reminder: magic byte `0` + 4-byte schema ID + Avro binary. The schema ID is
 registry-specific — the reason Schema Linking exists for the Confluent Cloud side.
@@ -295,7 +295,7 @@ deployed with GitOps (ArgoCD).
 - **Two channels, two ways out.** The **partner channel** gives external partners REST and
   streaming APIs (behind an API gateway such as 3scale), built as ESB routes — partners never get a
   Kafka client to the core cluster. The **analytics channel** is Cluster Linking of curated topics
-  from Confluent Platform on-prem to Confluent Cloud (Confluent course module 08). An ESB route that
+  from Confluent Platform on-prem to Confluent Cloud (Hybrid Kafka on Azure, module 01). An ESB route that
   publishes a fact feeds both, so it must be a good Kafka producer.
 - **ESB routes follow the same contract rules as any producer.** Schema registered from CI before
   deploy; `auto.register.schemas=false` in the platform's producer defaults; **one write owner per

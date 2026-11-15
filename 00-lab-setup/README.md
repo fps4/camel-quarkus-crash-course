@@ -21,8 +21,8 @@ subtitle: Supporting services on the lab host next to the Confluent lab cluster,
 ```
 
 - **Kafka is not duplicated.** dc-a and sr-a come from the
-  [Confluent Kafka crash course](https://github.com/fps4/confluent-kafka-crash-course) compose
-  (`../../confluent-kafka-crash-course/00-lab-setup`). This compose joins its network
+  [Hybrid Kafka on Azure](https://github.com/fps4/hybrid-kafka-on-azure) compose
+  (`../../hybrid-kafka-on-azure/00-lab-setup`). This compose joins its network
   `crash-course_default`, so Camel routes reach Kafka as `dc-a:29092`, like any other client in
   that lab. dc-b is not needed here; start it only for the Cluster Linking modules.
 - **Develop on your workstation, run the brokers on the lab host.** `tunnel.sh` forwards every lab
@@ -60,12 +60,12 @@ folders.
 ```bash
 ssh labhost
 mkdir -p ~/labs && cd ~/labs
-git clone https://github.com/fps4/confluent-kafka-crash-course.git      # or: git -C confluent-kafka-crash-course pull
+git clone https://github.com/fps4/hybrid-kafka-on-azure.git      # or: git -C hybrid-kafka-on-azure pull
 git clone https://github.com/fps4/camel-quarkus-crash-course.git  # or: git -C camel-quarkus-crash-course pull
 ```
 
 The two repos must sit side by side: the paths below, and the comments in `docker-compose.yml`,
-assume `~/labs/confluent-kafka-crash-course` and `~/labs/camel-quarkus-crash-course`.
+assume `~/labs/hybrid-kafka-on-azure` and `~/labs/camel-quarkus-crash-course`.
 
 ## On your workstation — tool chain
 
@@ -96,7 +96,7 @@ visual route designer, and the Camel debugger). Red Hat's VS Code tooling is the
 On the lab host:
 
 ```bash
-cd ~/labs/confluent-kafka-crash-course/00-lab-setup && docker compose up -d dc-a sr-a   # Kafka + Schema Registry (Confluent course)
+cd ~/labs/hybrid-kafka-on-azure/00-lab-setup && docker compose up -d dc-a sr-a   # Kafka + Schema Registry (Hybrid Kafka on Azure)
 cd ~/labs/camel-quarkus-crash-course/00-lab-setup && docker compose up -d        # artemis, postgres, wiremock, kafka-ui
 docker compose ps
 ```
@@ -126,7 +126,7 @@ Stop and reset (on the lab host):
 ```bash
 cd ~/labs/camel-quarkus-crash-course/00-lab-setup && docker compose --profile app --profile ibmmq stop     # keep data
 cd ~/labs/camel-quarkus-crash-course/00-lab-setup && docker compose --profile app --profile ibmmq down -v  # wipe Artemis, Postgres, MQ
-cd ~/labs/confluent-kafka-crash-course/00-lab-setup && docker compose stop dc-a sr-a
+cd ~/labs/hybrid-kafka-on-azure/00-lab-setup && docker compose stop dc-a sr-a
 ```
 
 # The reference app in a container
