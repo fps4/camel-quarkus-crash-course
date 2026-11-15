@@ -15,8 +15,8 @@ subtitle: "camel-quarkus-kafka producer and consumer, keys, acks, offsets, break
   a given integration flow.
 
 Kafka itself (partitions, ISR, idempotent producer, consumer groups, transactions) is in the
-[Confluent course](https://github.com/fps4/confluent-crash-course) (clone it next to this one): [07 Kafka internals](../../confluent-crash-course/07-kafka-internals/notes.md)
-§2.5–2.6 and [notes-clients-and-storage](../../confluent-crash-course/07-kafka-internals/notes-clients-and-storage.md).
+[Confluent course](https://github.com/fps4/confluent-kafka-crash-course) (clone it next to this one): [08 Kafka internals](../../confluent-kafka-crash-course/08-kafka-internals/notes.md)
+§2.5–2.6 and [notes-clients-and-storage](../../confluent-kafka-crash-course/08-kafka-internals/notes-clients-and-storage.md).
 This module covers only the Camel side.
 
 ---

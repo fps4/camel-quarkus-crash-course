@@ -2,9 +2,9 @@
 #
 # Written 2026-11-08. Runs on a Linux Docker host ("the lab host"; tested on Ubuntu 24.04, x86_64, 32 GB). Read README.md first.
 #
-# This file does NOT start Kafka. It joins the network of the Confluent crash course
+# This file does NOT start Kafka. It joins the network of the Confluent Kafka crash course
 # (project "crash-course", network "crash-course_default") and uses dc-a + sr-a from there:
-#   cd ../../confluent-crash-course/00-lab-setup && docker compose up -d dc-a sr-a
+#   cd ../../confluent-kafka-crash-course/00-lab-setup && docker compose up -d dc-a sr-a
 #
 # What runs here:
 #   artemis    Apache Artemis 2.57.0 (the "AMQ" in Red Hat AMQ Broker). Queues, per-message ack.

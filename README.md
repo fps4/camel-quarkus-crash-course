@@ -20,7 +20,7 @@ the design. **[V]** in the text = check before you state it as fact (versions, s
 vendor claims).
 
 This course is the companion of the
-[Confluent crash course](https://github.com/fps4/confluent-crash-course). The lab uses that course's
+[Confluent Kafka crash course](https://github.com/fps4/confluent-kafka-crash-course). The lab uses that course's
 Kafka cluster (`dc-a`) and Schema Registry (`sr-a`), so you clone both repos (see below).
 
 # If you know IBM ACE/IIB and MQ
@@ -95,12 +95,12 @@ bus live.
 # Get the code
 
 The lab needs both repos, cloned side by side, because this course starts `dc-a` + `sr-a` from the
-Confluent course and the relative paths (`../../confluent-crash-course/00-lab-setup`) expect that
+Confluent course and the relative paths (`../../confluent-kafka-crash-course/00-lab-setup`) expect that
 layout:
 
 ```bash
 mkdir -p ~/labs && cd ~/labs
-git clone https://github.com/fps4/confluent-crash-course.git
+git clone https://github.com/fps4/confluent-kafka-crash-course.git
 git clone https://github.com/fps4/camel-quarkus-crash-course.git
 ```
 
